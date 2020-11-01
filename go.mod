@@ -1,4 +1,4 @@
-module github.com/KimMachineGun/updep
+module github.com/KimMachineGun/modu
 
 go 1.14
 
