@@ -15,6 +15,8 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/muesli/reflow/ansi"
+	"github.com/muesli/reflow/truncate"
 	"github.com/muesli/termenv"
 )
 
@@ -159,13 +161,25 @@ func (m *model) content() string {
 
 		indirect := ""
 		if module.Indirect {
-			indirect = "// indirect"
+			indirect = termenv.String(" // indirect").Foreground(m.color.Color("242")).String()
 		}
 
-		m.builder.WriteString(fmt.Sprintf(
-			"%s %s [%s -> %s] %s\n",
-			cursor, module.Path, module.Version, module.Update.Version, indirect,
-		))
+		m.builder.WriteString(
+			// Truncate long lines if necessary
+			truncate.StringWithTail(
+				fmt.Sprintf(
+					"%s %s [%s -> %s]",
+					cursor, module.Path, module.Version, module.Update.Version,
+				),
+
+				// We want to always show the indirect portion if it's present,
+				// so subtract its width from the window width to get the
+				// maximum line width
+				uint(m.viewport.Width-ansi.PrintableRuneWidth(indirect)),
+
+				"…",
+			) + indirect + "\n",
+		)
 	}
 
 	return m.builder.String()
